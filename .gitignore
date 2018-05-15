@@ -1,0 +1,12 @@
+*.pyc
+*.pyo
+
+dist
+*.egg-info
+
+.coverage
+.report
+
+.mypy_cache/
+build/
+htmlcov/
