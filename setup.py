@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='terragrunt-source',
-    version='0.1.0a1',  # TODO change this to a git tag for Drone
+    version='0.1.0a2',  # TODO change this to a git tag for Drone
     description='A tool for managing the TERRAGRUNT_SOURCE environment '
                 'variable during development',
     long_description=long_description,
