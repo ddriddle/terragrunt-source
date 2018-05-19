@@ -5,7 +5,11 @@ dist
 *.egg-info
 
 .coverage
+.doc
 .report
+
+.tox
+.python-version
 
 .mypy_cache/
 build/

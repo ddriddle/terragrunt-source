@@ -1,8 +1,45 @@
-terragrunt-source
------------------
+Project description
+-------------------
 
-A tool for managing the TERRAGRUNT_SOURCE environment variable
-during development.
+A Terragrunt rapid development tool to simplify overriding the
+``source`` parameter in a ``terraform.tfvars`` file.
+
+
+Introduction
+------------
+
+``terragrunt-source`` is a simple script that parses the source
+line from the ``terraform.tfvars`` file in the current working
+directory producing a path to a local source tree that can be used
+by terragrunt during development. The path to the local source tree
+is looked up in the environment variable ``TERRAGRUNT_DEFAULT_MODULES_REPO``.
+
+This is best illustrated be an example. If you are in a directory
+that contains a ``terraform.tfvars`` file with the following content::
+
+    terragrunt = {
+      include {
+        path = "${find_in_parent_folders()}"
+      }
+
+      terraform {
+        source = "git::git@github.com:org/repo.git//lambda?ref=v0.6.2"
+      }
+    }
+
+And if ``TERRAGRUNT_DEFAULT_MODULES_REPO`` is set to ``/usr/src/modules``
+then then we expect the following output::
+
+    $ terragrunt-source
+    /usr/src/modules//lambda
+
+Then we can use terragrunt like so::
+
+    $ terragrunt plan --terragrunt-source `terragrunt-source`
+
+Another way this can be run is as follows::
+
+    $ TERRAGRUNT_SOURCE=`terragrunt-source` terragrunt plan
 
 Quick start
 -----------
@@ -16,36 +53,13 @@ Quick start
     export TERRAGRUNT_DEFAULT_MODULES_REPO=/path/to/your/checked/out/code
 
     terragrunt-source() {
-        unset TERRAGRUNT_SOURCE
-        export TERRAGRUNT_SOURCE=$($(which terragrunt-source));
-        echo $TERRAGRUNT_SOURCE
+        TERRAGRUNT_SOURCE=$($(which terragrunt-source)) terragrunt $@
     }
 
 3. Reload your ``~/.bashrc``::
 
     $ source ~/.bashrc
 
-Example
--------
+4. Change to a Terragrunt configuration directory::
 
-1. If you are in a directory that contains a ``terraform.tfvars`` with the
-following content::
-
-    terragrunt = {
-      include {
-        path = "${find_in_parent_folders()}"
-      }
-
-      terraform {
-        source = "git::git@github.com:org/repo.git//lambda?ref=v0.6.2"
-      }
-    }
-
-2. And if your ``TERRAGRUNT_DEFAULT_MODULES_REPO`` is set to ``/usr/src/modules``.
-
-3. Then we expect::
-
-    $ terragrunt-source
-    /usr/src/modules//lambda
-    $ echo $TERRAGRUNT_SOURCE
-    /usr/src/modules//lambda
+    $ terragrunt-source plan

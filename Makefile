@@ -28,8 +28,12 @@ build: $(OBJS) setup.py
 tox: .python-version
 	tox
 
-test: .report
+test: .report .doc
 	@cat $?
+
+.doc: README.rst
+	rst-lint README.rst
+	@touch $@
 
 .report: .coverage
 	@coverage report > $@
@@ -53,5 +57,5 @@ clean:
 	-pip uninstall -y $(PACKAGE_NAME)
 	rm -rf .coverage .report .summary __pycache__ htmlcov .mypy_cache .tox
 	rm -rf $(TPKG)/__pycache__ $(PKG)/__pycache__ $(TPKG)/config/__pycache__
-	rm -rf $(TPKG)/*.pyc  $(PKG)/*.pyc
+	rm -rf $(TPKG)/*.pyc  $(PKG)/*.pyc .doc
 	rm -rf build dist src/*.egg-info .eggs

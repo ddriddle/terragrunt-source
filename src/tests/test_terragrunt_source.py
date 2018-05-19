@@ -3,7 +3,6 @@ import unittest
 
 from io import StringIO
 from os import chdir, getcwd
-from os.path import dirname
 from shutil import rmtree
 from tempfile import mkdtemp
 try:
@@ -30,28 +29,48 @@ class TerragruntSource(unittest.TestCase):
     """ Tests various SAML helper functions """
 
     def setUp(self):
+        # Create temp dir
         self.tmpdir = mkdtemp()
         self.addCleanup(rmtree, self.tmpdir)
 
+        # Change working directory to tempdir
         self.addCleanup(chdir, getcwd())
-        chdir(dirname(self.tmpdir))
+        chdir(self.tmpdir)
 
-    def test_valid_file(self):
-        """terragrunt-source returns 0 with valid input. """
+    def assertTerragruntSource(self, test_output, environment, code, mesg):
+        with patch(test_output, new=StringIO()) as out:
+            with patch.dict('os.environ', environment, clear=True):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+
+        exp = cm.exception
+        self.assertEqual(exp.code, code)
+
+        self.assertEqual(out.getvalue().strip(), mesg)
+
+    def test_valid_terraform_tfvars_file(self):
+        """succeeds when terraform.tfvars is present and valid. """
         env = {'TERRAGRUNT_DEFAULT_MODULES_REPO': '/usr/src/modules'}
 
         with open('terraform.tfvars', 'w') as f:
             f.write(VALID_TERRAFORM_CONFIG)
 
-        with patch('sys.stdout', new=StringIO()) as stdout:
-            with patch.dict('os.environ', env):
-                with self.assertRaises(SystemExit) as cm:
-                    main()
+        mesg = '/usr/src/modules//lambda'
+        self.assertTerragruntSource('sys.stdout', env, 0, mesg)
 
-        exp = cm.exception
-        self.assertEqual(exp.code, 0)
+    def test_missing_terraform_tfvars_file(self):
+        """returns 2 when terraform.tfvars is missing. """
+        env = {'TERRAGRUNT_DEFAULT_MODULES_REPO': '/usr/src/modules'}
 
-        self.assertEqual(stdout.getvalue().strip(), '/usr/src/modules//lambda')
+        mesg = "[Errno 2] No such file or directory: 'terraform.tfvars'"
+        self.assertTerragruntSource('sys.stderr', env, 2, mesg)
+
+    def test_missing_environment_var(self):
+        """returns 3 when TERRAGRUNT_DEFAULT_MODULES_REPO is unset. """
+        mesg = "Environment variable TERRAGRUNT_DEFAULT_MODULES_REPO " \
+               "is undefined!"
+
+        self.assertTerragruntSource('sys.stderr', {}, 3, mesg)
 
 
 if __name__ == '__main__':

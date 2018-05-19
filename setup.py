@@ -10,9 +10,10 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='terragrunt-source',
-    version='0.1.0a2',  # TODO change this to a git tag for Drone
-    description='A tool for managing the TERRAGRUNT_SOURCE environment '
-                'variable during development',
+    version='0.1.0a3',  # TODO change this to a git tag for Drone
+    description='A Terragrunt rapid development tool to simplify '
+                'overriding the source parameter in a terraform.tfvars '
+                'file.',
     long_description=long_description,
     url='https://github.com/ddriddle/terragrunt-source',
     author='David D. Riddle',
@@ -40,6 +41,7 @@ setup(
     python_requires='>=2.6',
     install_requires=[
        'pyhcl',
+       "future ; python_version<'3'"
     ],
     tests_require=[
         "mock ; python_version<'3.4'"
