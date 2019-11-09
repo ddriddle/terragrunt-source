@@ -1,5 +1,6 @@
 from __future__ import print_function
 from builtins import str
+from typing import Tuple
 
 import os
 import sys
@@ -21,7 +22,7 @@ def terragrunt_source():  # type: () -> str
 
 
 def getPath(filename, tfvars=False):  # type: (str, bool) -> str
-    root = getRoot()
+    root, use_repo = getRoot()
 
     with open(filename, 'r') as fp:
         terragrunt = hcl.load(fp)
@@ -30,14 +31,18 @@ def getPath(filename, tfvars=False):  # type: (str, bool) -> str
         terragrunt = terragrunt['terragrunt']
     source = terragrunt['terraform']['source']
 
-    return source2path(source, root)
+    return source2path(source, root, use_repo)
 
 
-def source2path(source, root):  # type: (str, str) -> str
+def source2path(source, root, use_repo):  # type: (str, str, bool) -> str
     root = root.rstrip('/')
 
     src = source.split('//')
+    repo = src[0].split('/')[-1].rpartition('.git')[0]
     path = '' if len(src) < 2 else src[1].split('?')[0]
+
+    if use_repo:
+        root += '/' + repo
 
     if path:
         root += '//' + path
@@ -45,15 +50,21 @@ def source2path(source, root):  # type: (str, str) -> str
     return root
 
 
-def getRoot():  # type: () -> str
-    root = os.environ['TERRAGRUNT_DEFAULT_MODULES_REPO']
+def getRoot():  # type: () -> Tuple[str, bool]
+    use_repo = False
+
+    try:
+        root = os.environ['TERRAGRUNT_REPO_PATH']
+        use_repo = True
+    except KeyError:
+        root = os.environ['TERRAGRUNT_DEFAULT_MODULES_REPO']
 
     try:  # Python 2.x
         root = root.decode('utf8')  # type: ignore
     except AttributeError:  # Python 3.x
         pass
 
-    return root
+    return root, use_repo
 
 
 def error(code, mesg):  # type: (int, str) -> None
@@ -67,7 +78,8 @@ def main():  # type: () -> None
     except IOError as e:
         error(2, str(e))
     except KeyError:
-        error(3, 'Environment variable TERRAGRUNT_DEFAULT_MODULES_REPO '
-                 'is undefined!')
+        error(3, """
+Environment variables TERRAGRUNT_REPO_PATH and TERRAGRUNT_DEFAULT_MODULES_REPO
+are undefined! One must be defined!""")
 
     exit(0)
