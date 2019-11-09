@@ -34,7 +34,7 @@ def main():  # type: () -> None
         print(terragrunt_source())
     except IOError as e:
         error(2, str(e))
-    except KeyError as e:
+    except KeyError:
         error(3, 'Environment variable TERRAGRUNT_DEFAULT_MODULES_REPO '
                  'is undefined!')
 
