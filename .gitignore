@@ -14,3 +14,9 @@ dist
 .mypy_cache/
 build/
 htmlcov/
+
+.flake8
+.mypy
+
+venv
+*.swp

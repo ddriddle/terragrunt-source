@@ -8,6 +8,10 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst')) as f:
     long_description = f.read()
 
+tests = [
+    "mock ; python_version<'3.4'"
+]
+
 setup(
     name='terragrunt-source',
     version='0.1.0a3',  # TODO change this to a git tag for Drone
@@ -43,9 +47,16 @@ setup(
        'pyhcl',
        "future ; python_version<'3'"
     ],
-    tests_require=[
-        "mock ; python_version<'3.4'"
-    ],
+    tests_require=tests,
+    extras_require={
+        "linting": [
+            "flake8",
+            "mypy ; python_version>'3.4'",
+            "coverage",
+            "restructuredtext-lint",
+        ],
+        "tests": tests,
+    },
     test_suite="tests",
     entry_points={
         'console_scripts': [
